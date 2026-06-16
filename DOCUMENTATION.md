@@ -24,6 +24,8 @@ cargo run --release
 cargo run --release -- 200 150
 ```
 
+
+
 ### Output
 
 The program generates 4 PPM images:
@@ -32,6 +34,16 @@ The program generates 4 PPM images:
 - `scene3_all_objects.ppm` - All 4 object types
 - `scene4_all_objects_alt.ppm` - Same scene, different camera angle
 
+
+# Install Eye of GNOME
+sudo apt-get update
+sudo apt-get install eog
+
+# Then view your PPM files
+eog scene1_sphere.ppm
+eog scene2_plane_cube.ppm
+eog scene3_all_objects.ppm
+eog scene4_all_objects_alt.ppm
 ## Code Examples
 
 ### Creating Objects
