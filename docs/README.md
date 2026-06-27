@@ -1,105 +1,222 @@
-## rt
+# rt - Ray Tracer 
 
-There are two ways to render a 3d scene into a 2d image: `rasterization`, which converts the shapes and geometric figures to pixels and applies calculations to obtain the color, the shadows, the refraction, etc... of those pixels. The other method is called `ray tracing` and consists in drawing each pixel with its color, shadows, refraction, reflection, etc.... already present from the start.
+A ray tracer written in Rust that renders 3D scenes to PPM images.
 
-Imagine a camera pointing at a scene, and from that camera, a bunch of rays are coming, which bounce from object to object until they reach the light source (lamp, sun, etc...). This is basically how a ray tracer works.
+## Features
 
-In `ray tracing` each of these rays can be seen as a pixel in the image captured by the camera. Recursively the ray tracer will calculate where the light comes from in that pixel, allowing to give that pixel a color with some shadow aspect, some refraction aspect, and so on.
+- **4 Object Types**: Sphere, Cube, Flat Plane, and Cylinder
+- **Phong Lighting Model**: Ambient, diffuse, and specular lighting
+- **Shadows**: Accurate shadow casting from point lights
+- **Reflection**: Objects can have reflective surfaces
+- **Configurable Camera**: Position, look-at target, field of view
+- **Adjustable Brightness**: Control scene lighting intensity
+- **PPM Output**: Standard P3 format images
 
-To understand better how ray tracing works, it is highly suggested that you search online this subject, as it can get quite complicated.
+## Usage
 
-Below is an example of an image which your ray tracer should be able to produce:
+### Basic Usage
 
-![image.png](raytrace.png)
+```bash
+# Render at default 800x600 resolution
+cargo run --release
 
-> The image generated includes reflection that is one of the required bonus features. More information below.
-
-### Objectives
-
-In this project, you have to implement the ray tracer method in order to be able to render a computer generated image containing a few objects.
-
-When building your ray tracer, you have to take some points into consideration:
-
-- You need to be able to create at least 4 simple objects: a sphere, a cube, a flat plane and a cylinder.
-- Your program must be able to change an object's location before creating the image. (Example: render a sphere with its center on the point (1,1,1)).
-- You have to be able to look at the same scene from different angles by moving the camera/point of view.
-- You also have to implement simple light management, which includes: different brightness and shadows.
-
-As your ray tracer will probably be a bit slow to render high resolution scenes, you should make 4 .ppm images for the auditors to evaluate. The scenarios of these 4 images that you have to create consist of:
-
-- A scene with a sphere;
-- A scene with a flat plane and a cube with lower brightness than in the sphere image;
-- A scene with one of each of all the objects (one cube, one sphere, one cylinder and one flat plane);
-- A scene like the previous one, but with the camera in another position (thus generating the same image from a different perspective).
-
-All the images should be in the format of 800x600. However, while testing, you should use smaller resolution images in order to reduce your rendering time (a 1200x1000 can take up to 40 mins to create). It would be best to consider the possibility of changing the output image's resolution easily.
-
-Another aspect you should consider is that the auditor will have to use your ray tracer, so make it as usable and optimized as possible. You should provide the auditor clear documentation.
-
-#### Documentation
-
-By documentation, we mean the explanation of how the ray tracer works and how to work with it, for example: how to create an object, how to change brightness in a scene, etc... After reading the documentation, a new user of your ray tracer has to be able to use it without much guessing work.
-
-You will have to create a [markdown](https://www.markdownguide.org/getting-started/) file, which will have to contain:
-
-- Explanation on the features of your ray tracer
-- Code examples and explanations on how to:
-  - Create an instance of each object (a sphere, a cube, a flat plane and a cylinder)
-  - Change the brightness
-  - Change the camera position and angle
-
-### Instructions
-
-In order to render images you will create a [.ppm](https://www.cs.swarthmore.edu/~soni/cs35/f13/Labs/extras/01/ppm_info.html) file. A .ppm file consists of an image header and an image body. Example:
-
-```
-P3              \
-4 4              > Image Header
-255             /
-0 0 0           \
-0 0 0            \
-0 0 0            |
-255 0 255        |
-100 0 0          |
-0 255 175        |
-0 0 0            |
-0 0 0             > Image Body
-0 0 0            |
-0 0 0            |
-015 175          |
-0 0 0            |
-255 0 255        |
-0 0 0            |
-0 0 0            /
-255 255 255     /
+# Render at custom resolution (faster for testing)
+cargo run --release -- 200 150
 ```
 
-The image header consists of three lines:
 
-- The first one is the image format: what type of PPM (full color, ASCII encoding) image it is. P3 stands for the Portable PixMap type, so you will be using this one.
-- The following stands for how many columns and rows of pixels the image will contain.
-- The third line is the maximum color value, 255 is the most common value since the rgb color code is very well known.
 
-All the other lines below are the rgb values for each pixel, for example the first line of the image body represents a black pixel (rgb(0,0,0) -> black). Each line represents one pixel, starting on the top left corner transitioning to the right and, in this case, the fifth line is the pixel in the first row on the second column.
+### Output
 
-So with this in mind, you will have to make an algorithm that fills a file by printing each line. You can use the cargo command this way: `cargo run > output.ppm`. This will print the standard output to the file `output.ppm`.
+The program generates 4 PPM images:
+- `scene1_sphere.ppm` - Scene with a sphere
+- `scene2_plane_cube.ppm` - Plane and cube with lower brightness
+- `scene3_all_objects.ppm` - All 4 object types
+- `scene4_all_objects_alt.ppm` - Same scene, different camera angle
 
-In order to create the previously mentioned objects, you will need to search online for documentation about the geometrics of each.
 
-### Bonus
+# Install Eye of GNOME
+sudo apt-get update
+sudo apt-get install eog
 
-As bonus for this project you can implement:
+# Then view your PPM files
+eog scene1_sphere.ppm
+eog scene2_plane_cube.ppm
+eog scene3_all_objects.ppm
+eog scene4_all_objects_alt.ppm
+## Code Examples
 
-- Textures to the surfaces of the objects
-- Reflection and refraction effects on the objects (make them shiny or reflective)
-- Add particles
-- Add fluids
+### Creating Objects
 
-Consider putting your bonuses behind command-line flags to achieve a reasonable performance standard defined above. For example, to render textures on your image, you can use a flag -t. Otherwise, textures will be ignored.
+#### Sphere
 
-This project will help you learn about:
+```rust
+// Create a red sphere at position (0, 1, 0) with radius 1.0
+let material = Material::new(Color::new(0.8, 0.2, 0.2));  // RGB color
+let sphere = Sphere::new(
+    Point3::new(0.0, 1.0, 0.0),  // center position
+    1.0,                          // radius
+    material
+);
+scene.add(sphere);
+```
 
-- [Ray Tracing](<https://en.wikipedia.org/wiki/Ray_tracing_(graphics)>)
-- Computer generated imagery (CGI)
-- Algorithms
-- Geometry and maths
+#### Cube
+
+```rust
+// Create a blue cube centered at (2, 0.5, 0) with size 1.5
+let material = Material::new(Color::new(0.2, 0.5, 0.8));
+let cube = Cube::new(
+    Point3::new(2.0, 0.5, 0.0),  // center position
+    1.5,                          // size (edge length)
+    material
+);
+scene.add(cube);
+```
+
+#### Flat Plane
+
+```rust
+// Create a gray ground plane at y = -0.5, facing upward
+let material = Material::new(Color::new(0.5, 0.5, 0.5));
+let plane = Plane::new(
+    Point3::new(0.0, -0.5, 0.0),  // a point on the plane
+    Vec3::new(0.0, 1.0, 0.0),     // normal direction (up)
+    material
+);
+scene.add(plane);
+```
+
+#### Cylinder
+
+```rust
+// Create a yellow cylinder at (0, 0.75, -2) with radius 0.5 and height 1.5
+let material = Material::new(Color::new(0.8, 0.7, 0.2));
+let cylinder = Cylinder::new(
+    Point3::new(0.0, 0.75, -2.0),  // center position
+    0.5,                            // radius
+    1.5,                            // height
+    material
+);
+scene.add(cylinder);
+```
+
+### Changing Brightness
+
+```rust
+// Method 1: Adjust light intensity directly
+let light = PointLight::new(
+    Point3::new(5.0, 10.0, 5.0),  // position
+    0.6                            // intensity (lower = dimmer)
+);
+scene.add_light(light);
+
+// Method 2: Adjust ambient light level
+scene.ambient = 0.05;  // default is 0.1
+
+// Method 3: Use the convenience method to set both
+scene.set_brightness(0.5);  // scales both ambient and light intensity
+```
+
+### Changing Camera Position and Angle
+
+```rust
+// Create a camera
+let camera = Camera::new(
+    Point3::new(0.0, 3.0, 8.0),   // camera position
+    Point3::new(0.0, 0.0, 0.0),   // look-at target
+    Vec3::new(0.0, 1.0, 0.0),     // up direction
+    60.0,                          // field of view in degrees
+    800.0 / 600.0                  // aspect ratio (width/height)
+);
+
+// Example: Move camera to the right and higher
+let camera_alt = Camera::new(
+    Point3::new(6.0, 5.0, 4.0),   // new position (right, up, forward)
+    Point3::new(0.0, 0.0, -1.0),  // same look-at target
+    Vec3::new(0.0, 1.0, 0.0),
+    60.0,
+    800.0 / 600.0
+);
+```
+
+### Complete Scene Example
+
+```rust
+fn create_custom_scene() -> (Scene, Camera) {
+    let mut scene = Scene::new();
+
+    // Add objects
+    scene.add(Sphere::new(
+        Point3::new(-1.0, 0.5, 0.0),
+        1.0,
+        Material::new(Color::new(1.0, 0.0, 0.0))  // red
+    ));
+
+    scene.add(Cube::new(
+        Point3::new(1.5, 0.5, 0.0),
+        1.0,
+        Material::new(Color::new(0.0, 1.0, 0.0))  // green
+    ));
+
+    scene.add(Plane::new(
+        Point3::new(0.0, -0.5, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        Material::new(Color::new(0.8, 0.8, 0.8))  // light gray
+    ));
+
+    // Add light
+    scene.add_light(PointLight::new(
+        Point3::new(5.0, 10.0, 5.0),
+        1.0
+    ));
+
+    // Create camera
+    let camera = Camera::new(
+        Point3::new(0.0, 2.0, 5.0),
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 1.0, 0.0),
+        60.0,
+        800.0 / 600.0
+    );
+
+    (scene, camera)
+}
+
+// Render the scene
+let (scene, camera) = create_custom_scene();
+let pixels = render(&scene, &camera, 800, 600);
+save_ppm("output.ppm", &pixels, 800, 600).unwrap();
+```
+
+### Adding Reflection (Bonus Feature)
+
+```rust
+// Create a reflective material
+let material = Material::new(Color::new(0.8, 0.8, 0.8))
+    .with_reflectivity(0.5);  // 0.0 = no reflection, 1.0 = mirror
+
+scene.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, material));
+```
+
+## Resolution Tips
+
+- **Testing**: Use 200x150 for quick iteration (~1 second)
+- **Preview**: Use 400x300 for checking composition (~5 seconds)
+- **Final**: Use 800x600 for deliverables (~20 seconds)
+- Higher resolutions like 1200x1000 can take several minutes
+
+## Coordinate System
+
+- **X-axis**: Left (-) to Right (+)
+- **Y-axis**: Down (-) to Up (+)
+- **Z-axis**: Into screen (-) to Towards viewer (+)
+
+## Color Values
+
+Colors use RGB values from 0.0 to 1.0:
+- `Color::new(1.0, 0.0, 0.0)` = Red
+- `Color::new(0.0, 1.0, 0.0)` = Green
+- `Color::new(0.0, 0.0, 1.0)` = Blue
+- `Color::new(1.0, 1.0, 1.0)` = White
+- `Color::new(0.0, 0.0, 0.0)` = Black
